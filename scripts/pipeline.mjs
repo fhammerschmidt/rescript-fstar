@@ -1,5 +1,5 @@
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
-import {compiler, converter, fstar, localPath, requireFile, run} from './common.mjs';
+import {compiler, converter, localPath, requireFile, run, runFstar} from './common.mjs';
 
 const stages = ['verify', 'extract', 'convert', 'build'];
 const stage = process.argv[2];
@@ -9,18 +9,17 @@ try {
     throw new Error(`Usage: node scripts/pipeline.mjs ${stages.join('|')}`);
   }
 
-  requireFile(fstar);
   if (stages.indexOf(stage) >= 2) requireFile(converter);
   if (stage === 'build') requireFile(compiler);
   mkdirSync(localPath('_build', 'fstar'), {recursive: true});
 
   console.log('\nChecking the F* proof…');
   // Force verification so every build checks the source, even with a warm cache.
-  run(fstar, ['--force', '--cache_checked_modules', '--cache_dir', '_build/fstar', 'fstar/Toy.fst']);
+  runFstar(['--force', '--cache_checked_modules', '--cache_dir', '_build/fstar', 'fstar/Toy.fst']);
 
   if (stages.indexOf(stage) >= 1) {
     console.log('\nExtracting OCaml…');
-    run(fstar, [
+    runFstar([
       '--cache_dir', '_build/fstar', '--odir', '_build/fstar',
       '--codegen', 'OCaml', '--extract', 'Toy', '--no_location_info', 'fstar/Toy.fst',
     ]);

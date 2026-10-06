@@ -7,9 +7,20 @@ to JavaScript by ReScript 12 and executed by Node.
 
 ## Run it
 
-Requires Node **20.11 or newer**, npm, and `tar`. Setup supports macOS and Linux
-on ARM64 and x64; on Windows, use WSL. Only macOS ARM64 has been tested here.
-You do not need to install OCaml, opam, F*, or Z3 globally.
+Requires Node **20.11 or newer**, npm, and a separate F* installation. Install
+F* using the [official installation instructions](https://github.com/FStarLang/FStar/blob/master/INSTALL.md).
+This example has been tested with **v2026.09.27** on macOS ARM64; on Windows,
+use WSL. The official binary distribution includes a compatible Z3. Follow
+the upstream instructions for native dependencies on your platform, including
+GMP and Zstandard where required.
+
+Put `fstar.exe` on your `PATH`, or point the project at your chosen installation:
+
+```sh
+export FSTAR_EXE=/path/to/fstar/bin/fstar.exe
+```
+
+Then run the normal npm workflow:
 
 ```sh
 npm ci
@@ -18,10 +29,19 @@ npm start
 npm test
 ```
 
-Setup downloads the pinned F* release (about 200 MB), verifies its SHA-256,
-installs it with its bundled Z3 under `.tools/fstar`, and installs the v11
-converter under `tools/ocaml-to-rescript`. The first setup requires access to
-GitHub and npm; subsequent builds run offline. Both npm installs have lockfiles.
+`npm ci` installs ReScript 12 into the root `node_modules`. `npm run setup`
+checks your F* installation and explicitly installs the pinned v11 converter
+into `tools/ocaml-to-rescript/node_modules`. Both npm installs have lockfiles.
+Subsequent builds run offline. There is no automatic setup hook, and the project
+does not download F*, Z3, or system libraries or install global tools.
+
+The workflow does not invoke a local OCaml compiler or opam. F* emits OCaml
+source, and the prebuilt ReScript converter reads that source directly.
+
+Earlier versions of this example downloaded F* into `.tools/fstar`, cached
+archives in `.tools/downloads`, and attempted to stage native libraries in
+`.tools/native`. These ignored directories may remain in an existing checkout;
+the scripts no longer create or automatically use them.
 
 After the build messages, `npm start` prints:
 
@@ -54,6 +74,7 @@ the F* proof establishes commutativity for all values in its model.
 
 | Command | Result |
 | --- | --- |
+| `npm run setup` | Checks your installed F* and installs the project-local v11 converter. |
 | `npm run verify` | Checks `fstar/Toy.fst`; caches checked modules in `_build/fstar`. |
 | `npm run extract` | Checks, then extracts `_build/fstar/Toy.ml`. |
 | `npm run convert` | Extracts, then writes `_build/converted/Toy.res` and `src/generated/Toy.res`. |
@@ -63,8 +84,8 @@ the F* proof establishes commutativity for all values in its model.
 
 All helper scripts are JavaScript in [`scripts/`](scripts/). The converter is
 ReScript **11.1.4**, installed in its own directory so it cannot replace the root
-v12 binaries. F* **v2026.09.27** and its platform-specific checksums are pinned in
-[`scripts/toolchain.json`](scripts/toolchain.json).
+v12 binaries. Install F* **v2026.09.27** to reproduce the tested extraction;
+other releases may change the generated OCaml and need compatibility updates.
 
 The bridge invokes the v11 formatter directly:
 
