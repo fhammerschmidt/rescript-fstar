@@ -1,0 +1,7 @@
+Console.log("F* proved: reverse(reverse(xs)) = xs for every boolean list.")
+Console.log("original:")
+Console.log(Example02.sample->Example02List.toArray)
+Console.log("reversed:")
+Console.log(Example02.sample->Example02.reverse->Example02List.toArray)
+Console.log("reversed twice:")
+Console.log(Example02.sample->Example02.reverse->Example02.reverse->Example02List.toArray)

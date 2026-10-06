@@ -31,4 +31,4 @@ jobs:
       - name: Verify, extract, convert, compile, and test
         run: npm test
       - name: Run the example with Node
-        run: node src/Main.res.js
+        run: node scripts/run.mjs --no-build

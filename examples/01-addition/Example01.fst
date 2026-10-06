@@ -1,4 +1,4 @@
-module Toy
+module Example01
 
 // Unary natural numbers keep the extracted example independent of Zarith.
 type nat =

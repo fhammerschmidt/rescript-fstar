@@ -1,6 +1,6 @@
-// Generated from fstar/Toy.fst by npm run convert. Do not edit.
-// F* emits unused pattern variables and a refined constructor projector.
-// The public .resi hides these helpers; the projector requires Succ.
+// Generated from examples/01-addition/Example01.fst by npm run convert. Do not edit.
+// F* emits unused bindings and constructor projectors with erased refinements.
+// A handwritten .resi can expose the public API and hide those helpers.
 @@warning("-8-27-32")
 type rec nat =
   | Zero

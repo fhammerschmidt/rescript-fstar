@@ -1,48 +1,57 @@
 import {mkdirSync, readFileSync, writeFileSync} from 'node:fs';
+import {join} from 'node:path';
 import {compiler, converter, localPath, requireFile, run, runFstar} from './common.mjs';
+import {selectExamples} from './examples.mjs';
 
 const stages = ['verify', 'extract', 'convert', 'build'];
-const stage = process.argv[2];
+const [stage, selector, ...extra] = process.argv.slice(2);
 
 try {
-  if (!stages.includes(stage)) {
-    throw new Error(`Usage: node scripts/pipeline.mjs ${stages.join('|')}`);
+  if (!stages.includes(stage) || extra.length) {
+    throw new Error(`Usage: node scripts/pipeline.mjs ${stages.join('|')} [example-number]`);
   }
-
+  const examples = selectExamples(selector);
   if (stages.indexOf(stage) >= 2) requireFile(converter);
   if (stage === 'build') requireFile(compiler);
-  mkdirSync(localPath('_build', 'fstar'), {recursive: true});
 
-  console.log('\nChecking the F* proof…');
-  // Force verification so every build checks the source, even with a warm cache.
-  runFstar(['--force', '--cache_checked_modules', '--cache_dir', '_build/fstar', 'fstar/Toy.fst']);
+  for (const example of examples) {
+    const extracted = localPath('_build', 'examples', example.folder, 'fstar');
+    const convertedDirectory = localPath('_build', 'examples', example.folder, 'converted');
+    mkdirSync(extracted, {recursive: true});
+    const commonArgs = ['--include', example.directory, '--cache_dir', extracted];
 
-  if (stages.indexOf(stage) >= 1) {
-    console.log('\nExtracting OCaml…');
-    runFstar([
-      '--cache_dir', '_build/fstar', '--odir', '_build/fstar',
-      '--codegen', 'OCaml', '--extract', 'Toy', '--no_location_info', 'fstar/Toy.fst',
-    ]);
-  }
+    console.log(`\nExample ${example.number}: checking the F* proof…`);
+    // Force verification even with a warm cache.
+    runFstar([...commonArgs, '--force', '--cache_checked_modules', example.proof]);
 
-  if (stages.indexOf(stage) >= 2) {
-    console.log('\nConverting OCaml with ReScript 11.1.4…');
-    mkdirSync(localPath('_build', 'converted'), {recursive: true});
-    // Use bsc's formatter directly: the `rescript convert` CLI deletes its .ml input.
-    run(process.execPath, [converter, '-o', '_build/converted/Toy.res', '-format', '_build/fstar/Toy.ml']);
-    const converted = readFileSync(localPath('_build', 'converted', 'Toy.res'), 'utf8');
-    // The OCaml extractor opens Prims and qualifies its native bool alias.
-    // ReScript 12 has bool built in and forbids redefining it in a Prims shim.
-    const adapted = converted.replace(/^open Prims\r?\n/m, '').replace(/\bPrims\.bool\b/g, 'bool');
-    if (/\bPrims\b/.test(adapted)) {
-      throw new Error('The extracted code needs more of the F* runtime than this toy bridge supports.');
+    if (stages.indexOf(stage) >= 1) {
+      console.log(`Example ${example.number}: extracting OCaml…`);
+      runFstar([
+        ...commonArgs, '--odir', extracted, '--codegen', 'OCaml',
+        '--extract', example.module, '--no_location_info', example.proof,
+      ]);
     }
-    mkdirSync(localPath('src', 'generated'), {recursive: true});
-    writeFileSync(localPath('src', 'generated', 'Toy.res'),
-      '// Generated from fstar/Toy.fst by npm run convert. Do not edit.\n' +
-      '// F* emits unused pattern variables and a refined constructor projector.\n' +
-      '// The public .resi hides these helpers; the projector requires Succ.\n' +
-      '@@warning("-8-27-32")\n' + adapted);
+
+    if (stages.indexOf(stage) >= 2) {
+      console.log(`Example ${example.number}: converting OCaml with ReScript 11.1.4…`);
+      mkdirSync(convertedDirectory, {recursive: true});
+      const convertedFile = join(convertedDirectory, `${example.module}.res`);
+      // The higher-level `rescript convert` CLI deletes its .ml input.
+      run(process.execPath, [converter, '-o', convertedFile, '-format', join(extracted, `${example.module}.ml`)]);
+      const converted = readFileSync(convertedFile, 'utf8');
+      // ReScript 12 has bool built in and forbids redefining it in a Prims shim.
+      const adapted = converted.replace(/^open Prims\r?\n/m, '').replace(/\bPrims\.bool\b/g, 'bool');
+      if (/\bPrims\b/.test(adapted)) {
+        throw new Error(`Example ${example.number} needs more of the F* runtime than this bridge supports.`);
+      }
+      const generated = join(example.directory, 'generated');
+      mkdirSync(generated, {recursive: true});
+      writeFileSync(join(generated, `${example.module}.res`),
+        `// Generated from examples/${example.folder}/${example.module}.fst by npm run convert. Do not edit.\n` +
+        '// F* emits unused bindings and constructor projectors with erased refinements.\n' +
+        '// A handwritten .resi can expose the public API and hide those helpers.\n' +
+        '@@warning("-8-27-32")\n' + adapted);
+    }
   }
 
   if (stage === 'build') {
