@@ -1,0 +1,34 @@
+name: Native Windows
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.0'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            tools/ocaml-to-rescript/package-lock.json
+      - name: Install project dependencies
+        run: npm ci
+      - name: Download official F* binary for this CI runner
+        run: node scripts/ci-fstar-windows.mjs
+      - name: Check F* and install the project-local converter
+        run: npm run setup
+      - name: Verify, extract, convert, compile, and test
+        run: npm test
+      - name: Run the example with Node
+        run: node src/Main.res.js

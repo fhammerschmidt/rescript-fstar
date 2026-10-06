@@ -9,15 +9,25 @@ to JavaScript by ReScript 12 and executed by Node.
 
 Requires Node **20.11 or newer**, npm, and a separate F* installation. Install
 F* using the [official installation instructions](https://github.com/FStarLang/FStar/blob/master/INSTALL.md).
-This example has been tested with **v2026.09.27** on macOS ARM64; on Windows,
-use WSL. The official binary distribution includes a compatible Z3. Follow
+Use the [official F* **v2026.09.27** release](https://github.com/FStarLang/FStar/releases/tag/v2026.09.27)
+for macOS, Linux, or native Windows x64. WSL is optional. This example has been
+tested on macOS ARM64; native Windows is checked by the repository's CI workflow.
+The official binary distribution includes a compatible Z3. Follow
 the upstream instructions for native dependencies on your platform, including
 GMP and Zstandard where required.
 
-Put `fstar.exe` on your `PATH`, or point the project at your chosen installation:
+On Windows, extract `fstar-v2026.09.27-Windows_NT-x86_64.zip` from that release.
+Put `fstar.exe` on your `PATH`, or point the project at your chosen installation.
+For macOS/Linux shells:
 
 ```sh
 export FSTAR_EXE=/path/to/fstar/bin/fstar.exe
+```
+
+For Windows PowerShell:
+
+```powershell
+$env:FSTAR_EXE = 'C:\path\to\fstar\bin\fstar.exe'
 ```
 
 Then run the normal npm workflow:
@@ -32,8 +42,8 @@ npm test
 `npm ci` installs ReScript 12 into the root `node_modules`. `npm run setup`
 checks your F* installation and explicitly installs the pinned v11 converter
 into `tools/ocaml-to-rescript/node_modules`. Both npm installs have lockfiles.
-Subsequent builds run offline. There is no automatic setup hook, and the project
-does not download F*, Z3, or system libraries or install global tools.
+Subsequent builds run offline. There is no automatic setup hook. The local npm
+workflow does not download F*, Z3, or system libraries or install global tools.
 
 The workflow does not invoke a local OCaml compiler or opam. F* emits OCaml
 source, and the prebuilt ReScript converter reads that source directly.
@@ -81,6 +91,12 @@ the F* proof establishes commutativity for all values in its model.
 | `npm run build` | Runs the previous stages, then compiles with ReScript **12.3.1**. |
 | `npm start` | Builds, then runs `src/Main.res.js` with Node. |
 | `npm test` | Builds, then runs Node's built-in test runner. |
+
+The [native Windows CI workflow](.github/workflows/windows.yml) runs this pipeline
+on Windows x64 with Node **20.11.0**, without WSL or a local OCaml compiler.
+Its explicitly named provisioning step downloads and checksums the official
+F* Windows archive into the temporary CI runner directory. That CI helper is
+never called by the local npm installation or setup commands.
 
 All helper scripts are JavaScript in [`scripts/`](scripts/). The converter is
 ReScript **11.1.4**, installed in its own directory so it cannot replace the root

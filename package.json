@@ -13,7 +13,7 @@
     "convert": "node scripts/pipeline.mjs convert",
     "build": "node scripts/pipeline.mjs build",
     "start": "npm run build && node src/Main.res.js",
-    "test": "npm run build && node --test test/*.test.mjs"
+    "test": "npm run build && node --test test/toy.test.mjs"
   },
   "devDependencies": {
     "rescript": "12.3.1"
