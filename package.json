@@ -1,0 +1,21 @@
+{
+  "name": "rescript-fstar-toy-proof",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20.11.0"
+  },
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "verify": "node scripts/pipeline.mjs verify",
+    "extract": "node scripts/pipeline.mjs extract",
+    "convert": "node scripts/pipeline.mjs convert",
+    "build": "node scripts/pipeline.mjs build",
+    "start": "npm run build && node src/Main.res.js",
+    "test": "npm run build && node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "rescript": "12.3.1"
+  }
+}

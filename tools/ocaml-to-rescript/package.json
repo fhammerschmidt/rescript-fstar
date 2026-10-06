@@ -1,0 +1,8 @@
+{
+  "name": "ocaml-to-rescript-converter",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "rescript": "11.1.4"
+  }
+}

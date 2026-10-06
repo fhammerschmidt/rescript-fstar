@@ -1,0 +1,6 @@
+{
+  "name": "rescript-fstar-toy-proof",
+  "sources": [{"dir": "src", "subdirs": true}],
+  "package-specs": [{"module": "esmodule", "in-source": true}],
+  "suffix": ".res.js"
+}

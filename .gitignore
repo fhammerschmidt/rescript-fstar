@@ -1,0 +1,11 @@
+node_modules/
+.tools/
+_build/
+lib/
+*.res.js
+*.res.mjs
+*.cmi
+*.cmj
+*.cmt
+*.cmti
+.DS_Store
