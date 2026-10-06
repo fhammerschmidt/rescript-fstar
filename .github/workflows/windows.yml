@@ -25,10 +25,8 @@ jobs:
       - name: Install project dependencies
         run: npm ci
       - name: Download official F* binary for this CI runner
-        run: node scripts/ci-fstar-windows.mjs
-      - name: Check F* and install the project-local converter
+        run: node .github/scripts/setup-fstar.mjs
+      - name: Install the project-local converter
         run: npm run setup
-      - name: Verify, extract, convert, compile, and test
-        run: npm test
-      - name: Run the example with Node
-        run: node scripts/run.mjs --no-build
+      - name: Verify, extract, convert, compile, and run the examples
+        run: npm start

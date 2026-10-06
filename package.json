@@ -7,13 +7,12 @@
     "node": ">=20.11.0"
   },
   "scripts": {
-    "setup": "node scripts/setup.mjs",
-    "verify": "node scripts/pipeline.mjs verify",
-    "extract": "node scripts/pipeline.mjs extract",
-    "convert": "node scripts/pipeline.mjs convert",
-    "build": "node scripts/pipeline.mjs build",
-    "start": "node scripts/run.mjs",
-    "test": "node scripts/test.mjs"
+    "setup": "npm ci --prefix tools/ocaml-to-rescript",
+    "verify": "node scripts/build.mjs verify",
+    "extract": "node scripts/build.mjs extract",
+    "convert": "node scripts/build.mjs convert",
+    "build": "node scripts/build.mjs build",
+    "start": "node scripts/build.mjs start"
   },
   "devDependencies": {
     "rescript": "12.3.1"

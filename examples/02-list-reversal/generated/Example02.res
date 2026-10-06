@@ -1,6 +1,4 @@
-// Generated from examples/02-list-reversal/Example02.fst by npm run convert. Do not edit.
-// F* emits unused bindings and constructor projectors with erased refinements.
-// A handwritten .resi can expose the public API and hide those helpers.
+// Generated from ../Example02.fst. Do not edit.
 @@warning("-8-27-32")
 type rec items =
   | Empty

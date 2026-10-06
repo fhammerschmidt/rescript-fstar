@@ -1,10 +1,10 @@
 // Explicit CI provisioning only; npm install/setup never invokes this script.
+import {execFileSync} from 'node:child_process';
 import {createHash} from 'node:crypto';
 import {appendFileSync, createWriteStream, mkdirSync, readdirSync} from 'node:fs';
 import {basename, join} from 'node:path';
 import {Readable, Transform} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
-import {run} from './common.mjs';
 
 try {
   if (process.platform !== 'win32' || !process.env.GITHUB_ENV || !process.env.RUNNER_TEMP) {
@@ -33,10 +33,10 @@ try {
   if (hash.digest('hex') !== checksum) throw new Error('F* archive checksum mismatch.');
 
   console.log('Extracting F* and its bundled Z3 on the CI runner…');
-  run('powershell.exe', [
+  execFileSync('powershell.exe', [
     '-NoProfile', '-NonInteractive', '-Command',
     '$ErrorActionPreference = "Stop"; Expand-Archive -LiteralPath $env:FSTAR_CI_ARCHIVE -DestinationPath $env:FSTAR_CI_DIRECTORY -Force',
-  ], {env: {...process.env, FSTAR_CI_ARCHIVE: archive, FSTAR_CI_DIRECTORY: directory}});
+  ], {stdio: 'inherit', env: {...process.env, FSTAR_CI_ARCHIVE: archive, FSTAR_CI_DIRECTORY: directory}});
   const binary = readdirSync(directory, {recursive: true}).find(filename => basename(filename) === 'fstar.exe');
   if (!binary) throw new Error('F* executable missing from release.');
   appendFileSync(process.env.GITHUB_ENV, `FSTAR_EXE=${join(directory, binary)}\n`);
